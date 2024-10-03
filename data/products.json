@@ -1,0 +1,29 @@
+{
+  "products": [
+    {
+      "id": "TP-UB100",
+      "name": "TechPro Ultrabook",
+      "category": "Computers and Laptops"
+    },
+    {
+      "id": "BW-GL200",
+      "name": "BlueWave Gaming Laptop",
+      "category": "Computers and Laptops"
+    },
+    {
+      "id": "SX-PP10",
+      "name": "SmartX ProPhone",
+      "category": "Smartphones and Accessories"
+    },
+    {
+      "id": "FS-DSLR200",
+      "name": "FotoSnap DSLR Camera",
+      "category": "Cameras and Camcorders"
+    },
+    {
+      "id": "CV-4K55",
+      "name": "CineView 4K TV",
+      "category": "Televisions and Home Theater Systems"
+    }
+  ]
+}

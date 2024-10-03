@@ -1,0 +1,21 @@
+{
+  "name": "electronics-store-customer-service",
+  "version": "1.0.0",
+  "description": "A customer service system for an electronics store using OpenAI",
+  "main": "backend/app.js",
+  "scripts": {
+    "start": "node backend/app.js",
+    "dev": "nodemon backend/app.js",
+    "streamlit": "streamlit run frontend/streamlit_app.py",
+    "app": "bash ./run_app.sh"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "openai": "^3.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}

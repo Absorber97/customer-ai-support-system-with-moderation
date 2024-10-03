@@ -1,0 +1,47 @@
+{
+  "TP-UB100": {
+    "brand": "TechPro",
+    "model_number": "TP-UB100",
+    "warranty": "1 year",
+    "rating": 4.5,
+    "features": ["13.3-inch display", "8GB RAM", "256GB SSD", "Intel Core i5 processor"],
+    "description": "A sleek and lightweight ultrabook for everyday use.",
+    "price": 799.99
+  },
+  "BW-GL200": {
+    "brand": "BlueWave",
+    "model_number": "BW-GL200",
+    "warranty": "2 years",
+    "rating": 4.7,
+    "features": ["15.6-inch display", "16GB RAM", "512GB SSD", "NVIDIA GeForce RTX 3060"],
+    "description": "A high-performance gaming laptop for an immersive experience.",
+    "price": 1199.99
+  },
+  "SX-PP10": {
+    "brand": "SmartX",
+    "model_number": "SX-PP10",
+    "warranty": "1 year",
+    "rating": 4.6,
+    "features": ["6.1-inch display", "128GB storage", "12MP dual camera", "5G"],
+    "description": "A powerful smartphone with advanced camera features.",
+    "price": 899.99
+  },
+  "FS-DSLR200": {
+    "brand": "FotoSnap",
+    "model_number": "FS-DSLR200",
+    "warranty": "1 year",
+    "rating": 4.7,
+    "features": ["24.2MP sensor", "1080p video", "3-inch LCD", "Interchangeable lenses"],
+    "description": "Capture stunning photos and videos with this versatile DSLR camera.",
+    "price": 599.99
+  },
+  "CV-4K55": {
+    "brand": "CineView",
+    "model_number": "CV-4K55",
+    "warranty": "2 years",
+    "rating": 4.8,
+    "features": ["55-inch display", "4K resolution", "HDR", "Smart TV"],
+    "description": "A stunning 4K TV with vibrant colors and smart features.",
+    "price": 599.99
+  }
+}
