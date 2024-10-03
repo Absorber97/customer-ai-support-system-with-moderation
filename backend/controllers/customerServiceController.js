@@ -1,16 +1,12 @@
 const { Configuration, OpenAIApi } = require("openai");
 const config = require('../config/config');
-const fs = require('fs');
-const path = require('path');
+const { moderateContent, preventPromptInjection } = require('../services/moderationService');
+const { getRandomProduct, getProductDetails, getRandomCommentType } = require('../services/productService');
 
 const configuration = new Configuration({
   apiKey: config.openaiApiKey,
 });
 const openai = new OpenAIApi(configuration);
-
-const productsData = JSON.parse(fs.readFileSync(path.join(__dirname, '../../data/products.json'), 'utf8'));
-const categoriesData = JSON.parse(fs.readFileSync(path.join(__dirname, '../../data/categories.json'), 'utf8'));
-const detailedDescriptions = JSON.parse(fs.readFileSync(path.join(__dirname, '../../data/detailed_descriptions.json'), 'utf8'));
 
 let currentProduct = null;
 
@@ -21,17 +17,6 @@ function get_completion(prompt, model="gpt-3.5-turbo", temperature=0) {
     messages: messages,
     temperature: temperature,
   });
-}
-
-function getRandomProduct() {
-  const products = productsData.products;
-  return products[Math.floor(Math.random() * products.length)];
-}
-
-function getProductDetails(productId) {
-  const product = productsData.products.find(p => p.id === productId);
-  const details = detailedDescriptions[productId];
-  return { ...product, ...details };
 }
 
 exports.generateQuestion = async (req, res) => {
@@ -48,32 +33,51 @@ exports.generateQuestion = async (req, res) => {
       You are a customer of an electronics store. Write a 100-word comment, question, or review about the following product in ${language}:
       ${JSON.stringify(productDetails)}
       `;
-    } else { // Change Comment Type
+    } else if (type === "Change Comment Type") {
       prompt = `
       You are a customer of an electronics store. Write a 100-word ${getRandomCommentType()} about the following product in ${language}:
       ${JSON.stringify(productDetails)}
       `;
+    } else if (type === "Generate Inappropriate Comment") {
+      prompt = `
+      You are a customer of an electronics store. Write a 100-word inappropriate or offensive comment about the following product in ${language}. Include content that might be considered hate speech, violent, or sexually explicit:
+      ${JSON.stringify(productDetails)}
+      `;
     }
+
     const response = await get_completion(prompt, "gpt-3.5-turbo", 0.7);
     const question = response.data.choices[0].message.content.trim();
-    res.json({ question, productName: currentProduct.name });
+
+    // Moderation check
+    const moderationResult = await moderateContent(question);
+
+    res.json({ 
+      question, 
+      productName: currentProduct.name,
+      moderationResult
+    });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: 'An error occurred while generating the question.' });
   }
 };
 
-function getRandomCommentType() {
-  const types = ["positive review", "negative review", "neutral comment", "technical question", "comparison request"];
-  return types[Math.floor(Math.random() * types.length)];
-}
-
 exports.handleCustomerQuery = async (req, res) => {
   const { query, language } = req.body;
 
   try {
+    // Prevent prompt injection
+    const safeQuery = preventPromptInjection(query);
+
+    // Moderation check
+    const moderationResult = await moderateContent(query);
+
+    if (moderationResult.flagged) {
+      return res.status(400).json({ error: 'The input contains inappropriate content.', moderationResult });
+    }
+
     // Step 1: Use the provided query as the customer's comment
-    const comment = query;
+    const comment = safeQuery;
 
     // Step 2: Generate email subject (using inferring technique)
     const subjectPrompt = `
@@ -128,11 +132,12 @@ exports.handleCustomerQuery = async (req, res) => {
     const cleanSubject = subject.replace(/^(Subject:|Email Subject:)/i, '').trim();
 
     res.json({ 
-      comment,
+      comment: safeQuery,
       subject: cleanSubject,
       summary,
       sentiment,
-      email
+      email,
+      moderationResult
     });
   } catch (error) {
     console.error('Error:', error);
