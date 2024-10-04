@@ -30,14 +30,7 @@ def render(language):
         is_inappropriate = state.get('is_inappropriate', False)
         injection_result = state.get('injection_result', False)
         submit_button = st.button("Submit", disabled=bool(is_inappropriate or injection_result))
-        if submit_button:
-            if state.get('customer_query'):
-                logger.info("Submit button clicked. Processing query...")
-                api.handle_customer_query(language)
-            else:
-                logger.warning("Attempted to submit without generating a question first")
-                st.warning("Please generate a question before submitting.")
-
+    
     if state.get('current_product_name'):
         st.info(f"Current Product: {state.get('current_product_name')}")
     
@@ -48,37 +41,20 @@ def render(language):
     display_moderation_result()
     display_injection_result()
 
-    if state.get('answer'):
-        st.subheader("Customer Service Response")
-        
-        # Display Chain of Thought reasoning
-        chain_of_thought = state.get('chain_of_thought', {})
-        if chain_of_thought:
-            st.write("Chain of Thought Reasoning:")
-            for i, step in enumerate(chain_of_thought.get('steps', []), 1):
-                with st.expander(f"Step {i}"):
-                    st.write(step)
-            
-            st.write("Final Answer:")
-            st.write(chain_of_thought.get('finalAnswer', ''))
-        
-        # Display email subject and body
-        st.write("Email Subject:", state.get('subject', ''))
-        st.write("Email Body:")
-        st.write(state.get('answer', ''))
+    if submit_button:
+        logger.info("Submit button clicked")
+        try:
+            api.handle_customer_query(language)
+        except Exception as e:
+            st.error(f"Failed to handle customer query: {str(e)}")
+            logger.error(f"Failed to handle customer query: {str(e)}")
 
 def display_classification_result():
-    st.subheader("Query Classification")
+    st.subheader("Query Classification Result")
     classification = state.get('classification')
-    logger.info(f"Displaying classification result: {classification}")
-    if classification and isinstance(classification, dict):
-        st.write(f"Primary Category: {classification.get('primary', 'N/A')}")
-        st.write(f"Secondary Category: {classification.get('secondary', 'N/A')}")
-    else:
-        st.info("No classification available.")
-    
-    # Add this line for debugging
-    st.text(f"Debug - Raw classification data: {classification}")
+    if classification:
+        st.write(f"Primary Category: {classification['primary']}")
+        st.write(f"Secondary Category: {classification['secondary']}")
 
 def display_moderation_result():
     st.subheader("Query Moderation Result")

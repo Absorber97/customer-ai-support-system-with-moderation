@@ -4,6 +4,17 @@ from frontend.utils import state
 def render():
     st.header("Customer Service Response")
     
+    # Display Chain of Thought reasoning
+    chain_of_thought = state.get('chain_of_thought', {})
+    if chain_of_thought:
+        with st.expander("Chain of Thought Reasoning", expanded=False):
+            for i, step in enumerate(chain_of_thought.get('steps', []), 1):
+                st.subheader(f"Step {i}")
+                st.write(step)
+            
+            st.subheader("Final Answer")
+            st.write(chain_of_thought.get('finalAnswer', ''))
+    
     st.subheader("Email Subject:")
     st.text_input("", value=state.get('subject', ''), key="subject_area")
     
