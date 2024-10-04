@@ -44,8 +44,22 @@ def render(language):
     st.subheader("Generated question:")
     st.text_area("", value=state.get('customer_query', ''), height=200, key="generated_question", disabled=True)
     
+    display_classification_result()
     display_moderation_result()
     display_injection_result()
+
+def display_classification_result():
+    st.subheader("Query Classification")
+    classification = state.get('classification')
+    logger.info(f"Displaying classification result: {classification}")
+    if classification and isinstance(classification, dict):
+        st.write(f"Primary Category: {classification.get('primary', 'N/A')}")
+        st.write(f"Secondary Category: {classification.get('secondary', 'N/A')}")
+    else:
+        st.info("No classification available.")
+    
+    # Add this line for debugging
+    st.text(f"Debug - Raw classification data: {classification}")
 
 def display_moderation_result():
     st.subheader("Query Moderation Result")

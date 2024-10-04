@@ -1,0 +1,76 @@
+{
+  "primary_categories": [
+    "Product Inquiry",
+    "Technical Support",
+    "Order Related",
+    "Account Management",
+    "Feedback and Reviews",
+    "Comparison",
+    "Usage and Tips",
+    "Warranty and Returns"
+  ],
+  "secondary_categories": {
+    "Product Inquiry": [
+      "Product Features",
+      "Product Specifications",
+      "Compatibility",
+      "Accessories",
+      "New Releases",
+      "Stock Availability",
+      "Pricing and Discounts"
+    ],
+    "Technical Support": [
+      "Troubleshooting",
+      "Setup and Installation",
+      "Software/Firmware Updates",
+      "Connectivity Issues",
+      "Performance Problems",
+      "User Manual Inquiries"
+    ],
+    "Order Related": [
+      "Order Status",
+      "Shipping and Delivery",
+      "Order Modifications",
+      "Payment Issues",
+      "Bulk Orders",
+      "International Orders"
+    ],
+    "Account Management": [
+      "Registration",
+      "Login Issues",
+      "Profile Updates",
+      "Privacy and Security",
+      "Subscription Management",
+      "Loyalty Program"
+    ],
+    "Feedback and Reviews": [
+      "Product Reviews",
+      "Service Feedback",
+      "Suggestions for Improvement",
+      "Complaints",
+      "Praise and Testimonials"
+    ],
+    "Comparison": [
+      "Product Comparison",
+      "Brand Comparison",
+      "Price Comparison",
+      "Feature Comparison",
+      "Alternatives and Recommendations"
+    ],
+    "Usage and Tips": [
+      "Best Practices",
+      "Advanced Features",
+      "Maintenance and Care",
+      "Customization Options",
+      "Productivity Tips"
+    ],
+    "Warranty and Returns": [
+      "Warranty Information",
+      "Extended Warranty",
+      "Return Policy",
+      "Refund Process",
+      "Repair Services",
+      "Replacement Procedures"
+    ]
+  }
+}

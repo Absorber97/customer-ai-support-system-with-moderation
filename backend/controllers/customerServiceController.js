@@ -3,6 +3,7 @@ const config = require('../config/config');
 const { moderateContent, isFlagged } = require('../services/moderationService');
 const { getRandomProduct, getProductDetails, getRandomCommentType } = require('../services/productService');
 const { detectPromptInjection, preventPromptInjection } = require('../services/promptInjectionService');
+const { classifyQuery } = require('../services/classificationService');
 
 const configuration = new Configuration({
   apiKey: config.openaiApiKey,
@@ -75,36 +76,46 @@ exports.generateQuestion = async (req, res) => {
     const question = await get_completion(prompt, "gpt-3.5-turbo", 0.7);
     console.log('Generated question:', question);
 
-    // Moderation check
+    // Classify the generated question
+    console.log('Classifying the generated question');
+    const classification = await classifyQuery(question);
+    console.log('Question classification result:', classification);
+
+    // Perform moderation check
     console.log('Performing moderation check');
     const moderationResult = await moderateContent(question);
     console.log('Moderation result:', moderationResult);
 
-    // Prompt injection detection
+    // Perform prompt injection detection
     console.log('Performing prompt injection detection');
     const injectionResult = await detectPromptInjection(question);
     console.log('Injection detection result:', injectionResult);
 
-    res.json({ 
-      question, 
+    // Check if the content is flagged
+    console.log('Checking if content is flagged:', moderationResult);
+    const is_flagged = isFlagged(moderationResult);
+    console.log('Content flagged:', is_flagged);
+
+    const response = {
+      question,
       productName: currentProduct.name,
       moderationResult,
       injectionResult,
+      classification: classification || { primary: 'Unclassified', secondary: 'Unclassified' },
       original_prompt: prompt,
-      is_flagged: isFlagged(moderationResult)
-    });
+      is_flagged
+    };
+
+    console.log('Sending response to frontend:', response);
+    res.json(response);
 
     // Update the current product in the state
     state.currentProduct = currentProduct;
   } catch (error) {
     console.error('Error in generateQuestion:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Error details:', error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
     res.status(500).json({ 
       error: 'An error occurred while generating the question.', 
-      details: error.message, 
-      stack: error.stack,
-      response: error.response ? error.response.data : null
+      details: error.message
     });
   }
 };

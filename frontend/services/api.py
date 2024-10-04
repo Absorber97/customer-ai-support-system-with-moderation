@@ -28,15 +28,23 @@ def generate_new_question(language, generation_type):
         raise Exception("Backend server is not accessible")
     
     try:
+        logger.info(f"Sending request to generate new question. Language: {language}, Type: {generation_type}")
         response = requests.get(f"{BASE_URL}/generate-question", params={"language": language, "type": generation_type})
         response.raise_for_status()
         data = response.json()
+        logger.info(f"Received response from backend: {data}")
+        
         state.set('customer_query', data["question"])
         state.set('current_product_name', data.get("productName", "N/A"))
         state.set('moderation_result', data["moderationResult"])
         state.set('is_inappropriate', data["is_flagged"])
         state.set('injection_result', data.get("injectionResult"))
+        state.set('classification', data.get("classification"))
+        
         logger.info(f"Question generated successfully: {data['question'][:50]}...")
+        logger.info(f"Classification: {data.get('classification')}")
+        logger.info(f"Moderation result: {data['moderationResult']}")
+        logger.info(f"Injection result: {data.get('injectionResult')}")
     except requests.RequestException as e:
         logger.error(f"Failed to generate a new question. Error: {str(e)}")
         raise
