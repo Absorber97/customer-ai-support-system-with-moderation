@@ -29,12 +29,11 @@ with query_col:
     
     generation_type = st.radio(
         "Select query type:",
-        ["Change Product", "Change Comment Type", "Generate Inappropriate Comment", "Prompt Injection Test"],
+        ["Change Product", "Change Comment Type", "Generate Inappropriate Comment"],
         format_func=lambda x: {
             "Change Product": "Generate query about a new product",
             "Change Comment Type": "Generate a different type of comment",
-            "Generate Inappropriate Comment": "Generate an inappropriate comment (for testing)",
-            "Prompt Injection Test": "Test prompt injection detection"
+            "Generate Inappropriate Comment": "Generate an inappropriate comment (for testing)"
         }.get(x, x)
     )
     
@@ -67,15 +66,6 @@ with query_col:
                             st.write(f"- {category}")
                 else:
                     st.success("This content has passed the moderation check.")
-                
-                if generation_type == "Prompt Injection Test":
-                    st.subheader("Injection Detection Result")
-                    injection_detected = data.get("injection_detected", False)
-                    st.json({"injection_detected": injection_detected})
-                    if injection_detected:
-                        st.warning("Potential prompt injection detected.")
-                    else:
-                        st.success("No prompt injection detected.")
             else:
                 st.error(f"Failed to generate a new question. Error: {response.text}")
 
@@ -116,24 +106,11 @@ if st.button("Submit"):
                             st.write(f"- {category}")
                 else:
                     st.success("This content has passed the moderation check.")
-                
-                # Display injection detection result if applicable
-                if "injection_detected" in data:
-                    st.subheader("Injection Detection Result")
-                    injection_detected = data["injection_detected"]
-                    st.json({"injection_detected": injection_detected})
-                    if injection_detected:
-                        st.warning("Potential prompt injection detected.")
-                    else:
-                        st.success("No prompt injection detected.")
             elif response.status_code == 400:
-                st.warning("Input flagged as inappropriate or potential prompt injection detected. Please modify your query.")
+                st.warning("Input flagged as inappropriate. Please modify your query.")
                 if 'moderationResult' in response.json():
                     st.subheader("Moderation Result")
                     st.json(response.json()['moderationResult'])
-                if 'injection_detected' in response.json():
-                    st.subheader("Injection Detection Result")
-                    st.json({"injection_detected": response.json()['injection_detected']})
             else:
                 st.error(f"An error occurred. Please try again. Error: {response.text}")
     else:
