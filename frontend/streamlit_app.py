@@ -89,7 +89,7 @@ with query_col:
             generate_new_question(language, generation_type)
     
     with col2:
-        submit_button = st.button("Submit", disabled=st.session_state.is_inappropriate)
+        submit_button = st.button("Submit", disabled=st.session_state.is_inappropriate or st.session_state.injection_result)
         if submit_button:
             if st.session_state.get('customer_query'):
                 logger.info("Submit button clicked. Processing query...")
@@ -101,7 +101,7 @@ with query_col:
                         st.session_state.subject = data["subject"]
                         st.session_state.answer = data["email"]
                         st.session_state.response_moderation_result = data["moderationResult"]
-                        st.session_state.injection_result = data.get("injectionResult")
+                        st.session_state.response_injection_result = data.get("injectionResult")
                         logger.info("Response generated successfully")
                         st.success("Response generated successfully!")
                     elif response.status_code == 400:
@@ -110,7 +110,7 @@ with query_col:
                         if 'moderationResult' in response.json():
                             st.session_state.response_moderation_result = response.json()['moderationResult']
                         if 'injectionResult' in response.json():
-                            st.session_state.injection_result = response.json()['injectionResult']
+                            st.session_state.response_injection_result = response.json()['injectionResult']
                     else:
                         error_message = f"An error occurred. Please try again. Error: {response.text}"
                         logger.error(error_message)

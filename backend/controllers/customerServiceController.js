@@ -2,7 +2,7 @@ const { Configuration, OpenAIApi } = require("openai");
 const config = require('../config/config');
 const { moderateContent } = require('../services/moderationService');
 const { getRandomProduct, getProductDetails, getRandomCommentType } = require('../services/productService');
-const { detectPromptInjection } = require('../services/promptInjectionService');
+const { detectPromptInjection, preventPromptInjection } = require('../services/promptInjectionService');
 
 const configuration = new Configuration({
   apiKey: config.openaiApiKey,
@@ -101,11 +101,8 @@ exports.handleCustomerQuery = async (req, res) => {
     // Step 1: Input Moderation
     const moderationResult = await moderateContent(query);
 
-    // Step 2: Prevent Prompt Injection
-    const safeQuery = preventPromptInjection(query);
-
-    // Step 3: Prompt Injection Detection
-    const injectionResult = await detectPromptInjection(safeQuery);
+    // Step 2: Prompt Injection Detection
+    const injectionResult = await detectPromptInjection(query);
 
     if (moderationResult.flagged || injectionResult) {
       return res.status(400).json({ 
@@ -115,31 +112,34 @@ exports.handleCustomerQuery = async (req, res) => {
       });
     }
 
-    // Step 3: Generate email subject (using inferring technique)
+    // Step 3: Prevent Prompt Injection
+    const safeQuery = preventPromptInjection(query);
+
+    // Step 4: Generate email subject (using inferring technique)
     const subjectPrompt = `
     What is the main topic of the following customer comment? Provide a short, concise email subject based on this topic in ${language}.
-    Customer comment: ${query}
+    Customer comment: ${safeQuery}
     `;
     const subject = await get_completion(subjectPrompt);
 
-    // Step 4: Generate summary of the customer's comment (using summarizing technique)
+    // Step 5: Generate summary of the customer's comment (using summarizing technique)
     const summaryPrompt = `
     Summarize the following customer comment in at most 30 words in ${language}:
-    ${query}
+    ${safeQuery}
     `;
     const summary = await get_completion(summaryPrompt);
 
-    // Step 5: Sentiment analysis of the customer's comment (using inferring technique)
+    // Step 6: Sentiment analysis of the customer's comment (using inferring technique)
     const sentimentPrompt = `
     What is the sentiment of the following customer comment? Answer with only "positive" or "negative" in ${language}.
-    Customer comment: ${query}
+    Customer comment: ${safeQuery}
     `;
     const sentiment = await get_completion(sentimentPrompt);
 
-    // Step 6: Generate an email to be sent to the customer (using expanding technique)
+    // Step 7: Generate an email to be sent to the customer (using expanding technique)
     const emailPrompt = `
     You are a customer service AI assistant named Alex for an electronics store called TechWorld. Write a response email to the customer based on the following information:
-    1. Customer's comment: ${query}
+    1. Customer's comment: ${safeQuery}
     2. Summary of the comment: ${summary}
     3. Sentiment of the comment: ${sentiment}
     4. Email subject: ${subject}
@@ -157,14 +157,17 @@ exports.handleCustomerQuery = async (req, res) => {
     `;
     const email = await get_completion(emailPrompt, "gpt-3.5-turbo", 0.7);
 
+    // Step 8: Perform final moderation check on the generated email
+    const emailModerationResult = await moderateContent(email);
+
     res.json({ 
       comment: query,
       subject,
       summary,
       sentiment,
       email,
-      moderationResult,
-      injectionResult
+      moderationResult: emailModerationResult,
+      injectionResult: false
     });
   } catch (error) {
     console.error('Error:', error);
