@@ -56,6 +56,7 @@ def handle_customer_query(language):
         data = response.json()
         state.set('subject', data["subject"])
         state.set('answer', data["email"])
+        state.set('chain_of_thought', data["chainOfThought"])
         state.set('response_moderation_result', data["moderationResult"])
         state.set('response_is_inappropriate', data["is_flagged"])
         state.set('response_injection_result', data.get("injectionResult"))

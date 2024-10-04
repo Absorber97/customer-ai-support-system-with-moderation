@@ -48,6 +48,25 @@ def render(language):
     display_moderation_result()
     display_injection_result()
 
+    if state.get('answer'):
+        st.subheader("Customer Service Response")
+        
+        # Display Chain of Thought reasoning
+        chain_of_thought = state.get('chain_of_thought', {})
+        if chain_of_thought:
+            st.write("Chain of Thought Reasoning:")
+            for i, step in enumerate(chain_of_thought.get('steps', []), 1):
+                with st.expander(f"Step {i}"):
+                    st.write(step)
+            
+            st.write("Final Answer:")
+            st.write(chain_of_thought.get('finalAnswer', ''))
+        
+        # Display email subject and body
+        st.write("Email Subject:", state.get('subject', ''))
+        st.write("Email Body:")
+        st.write(state.get('answer', ''))
+
 def display_classification_result():
     st.subheader("Query Classification")
     classification = state.get('classification')

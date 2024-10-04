@@ -1,6 +1,5 @@
 const { Configuration, OpenAIApi } = require("openai");
 const config = require('../config/config');
-const logger = require('../utils/logger');
 
 const configuration = new Configuration({
   apiKey: config.openaiApiKey,
@@ -27,5 +26,5 @@ async function getCompletion(messages, model = "gpt-3.5-turbo", temperature = 0)
 }
 
 module.exports = {
-  getCompletion
+  getCompletion,
 };

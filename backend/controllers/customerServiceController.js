@@ -4,6 +4,8 @@ const { moderateContent, isFlagged } = require('../services/moderationService');
 const { getRandomProduct, getProductDetails, getRandomCommentType } = require('../services/productService');
 const { detectPromptInjection, preventPromptInjection } = require('../services/promptInjectionService');
 const { classifyQuery } = require('../services/classificationService');
+const { generateChainOfThoughtAnswer } = require('../services/chainOfThoughtService');
+const { getCompletion } = require('../services/openaiService');
 
 const configuration = new Configuration({
   apiKey: config.openaiApiKey,
@@ -33,6 +35,28 @@ async function get_completion(prompt, model="gpt-3.5-turbo", temperature=0) {
     console.error('Error details:', error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
     throw error;
   }
+}
+
+async function generateEmailSubject(query, language) {
+  const prompt = `
+Generate a concise email subject line for the following customer query:
+"${query}"
+The subject should be in ${language} and no more than 10 words long.
+`;
+  return await getCompletion([{ role: 'user', content: prompt }]);
+}
+
+async function generateEmailBody(answer, language) {
+  const prompt = `
+Create a professional email body based on the following answer to a customer query:
+"${answer}"
+The email should be in ${language}, maintain a friendly tone, and include:
+1. A greeting
+2. The main content of the answer
+3. A closing statement offering further assistance if needed
+4. A sign-off
+`;
+  return await getCompletion([{ role: 'user', content: prompt }]);
 }
 
 exports.generateQuestion = async (req, res) => {
@@ -141,63 +165,25 @@ exports.handleCustomerQuery = async (req, res) => {
     // Step 3: Prevent Prompt Injection
     const safeQuery = preventPromptInjection(query);
 
-    // Step 4: Generate email subject (using inferring technique)
-    const subjectPrompt = `
-    What is the main topic of the following customer comment? Provide a short, concise email subject based on this topic in ${language}. Do not include any prefix like "Subject:" or "Email Subject:".
-    Customer comment: ${safeQuery}
-    `;
-    let subject = await get_completion(subjectPrompt);
-    // Remove any "Subject:" or "Email Subject:" prefix if it's still present
-    subject = subject.replace(/^(Subject:|Email Subject:)\s*/i, '').trim();
+    // Step 4: Generate Chain of Thought answer
+    const productDetails = getProductDetails(state.currentProduct.id);
+    const chainOfThoughtResult = await generateChainOfThoughtAnswer(query, productDetails, language);
 
-    // Step 5: Generate summary of the customer's comment (using summarizing technique)
-    const summaryPrompt = `
-    Summarize the following customer comment in at most 30 words in ${language}:
-    ${safeQuery}
-    `;
-    const summary = await get_completion(summaryPrompt);
+    // Generate email subject and body
+    const subject = await generateEmailSubject(query, language);
+    const email = await generateEmailBody(chainOfThoughtResult.finalAnswer, language);
 
-    // Step 6: Sentiment analysis of the customer's comment (using inferring technique)
-    const sentimentPrompt = `
-    What is the sentiment of the following customer comment? Answer with only "positive" or "negative" in ${language}.
-    Customer comment: ${safeQuery}
-    `;
-    const sentiment = await get_completion(sentimentPrompt);
-
-    // Step 7: Generate an email to be sent to the customer (using expanding technique)
-    const emailPrompt = `
-    You are a customer service AI assistant named Alex for an electronics store called TechWorld. Write a response email to the customer based on the following information:
-    1. Customer's comment: ${safeQuery}
-    2. Summary of the comment: ${summary}
-    3. Sentiment of the comment: ${sentiment}
-    4. Email subject: ${subject}
-
-    The email should:
-    - Be written in ${language}
-    - Have a friendly and professional tone
-    - Address the main points from the customer's comment
-    - If the sentiment is negative, apologize and offer a solution
-    - If the sentiment is positive, thank the customer for their feedback
-    - Encourage the customer to reach out if they have any more questions
-    - End with "Warm regards, Alex from the TechWorld Customer Service Team"
-
-    Important: Do not include any subject line, "Subject:" prefix, or "Email Subject:" prefix in your response. Start directly with the greeting (e.g., "Dear Valued Customer,").
-    `;
-    const email = await get_completion(emailPrompt, "gpt-3.5-turbo", 0.7);
-
-    // Step 8: Perform final moderation check on the generated email
-    const emailModerationResult = await moderateContent(email);
-
-    res.json({ 
-      comment: query,
+    const response = {
       subject,
-      summary,
-      sentiment,
       email,
-      moderationResult: emailModerationResult,
-      injectionResult: false,
-      is_flagged: isFlagged(emailModerationResult)
-    });
+      chainOfThought: chainOfThoughtResult,
+      moderationResult,
+      is_flagged: isFlagged(moderationResult),
+      injectionResult
+    };
+
+    console.log('Sending response to frontend:', response);
+    res.json(response);
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: 'An error occurred while processing your request.' });
