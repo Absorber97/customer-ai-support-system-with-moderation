@@ -15,6 +15,19 @@ def render():
             st.subheader("Final Answer")
             st.write(chain_of_thought.get('finalAnswer', ''))
     
+    # Display Factuality Check
+    factuality_check = state.get('factuality_check', {})
+    if factuality_check:
+        with st.expander("Response Factuality Check", expanded=False):
+            st.subheader("Evaluation")
+            st.write(factuality_check.get('evaluation', ''))
+            
+            verdict = factuality_check.get('verdict', '')
+            if verdict == "FACTUAL":
+                st.success(f"Verdict: {verdict}")
+            else:
+                st.error(f"Verdict: {verdict}")
+    
     st.subheader("Email Subject:")
     st.text_input("", value=state.get('subject', ''), key="subject_area")
     

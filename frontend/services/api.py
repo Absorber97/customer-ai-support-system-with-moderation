@@ -60,6 +60,7 @@ def handle_customer_query(language):
         state.set('response_moderation_result', data["moderationResult"])
         state.set('response_is_inappropriate', data["is_flagged"])
         state.set('response_injection_result', data.get("injectionResult"))
+        state.set('factuality_check', data.get("factualityCheck"))
         logger.info("Response generated successfully")
     except requests.RequestException as e:
         logger.error(f"Failed to handle customer query. Error: {str(e)}")

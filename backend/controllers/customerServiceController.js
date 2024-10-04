@@ -6,6 +6,7 @@ const { detectPromptInjection, preventPromptInjection } = require('../services/p
 const { classifyQuery } = require('../services/classificationService');
 const { generateChainOfThoughtAnswer } = require('../services/chainOfThoughtService');
 const { getCompletion } = require('../services/openaiService');
+const { checkOutputFactuality } = require('../services/outputCheckService');
 
 const configuration = new Configuration({
   apiKey: config.openaiApiKey,
@@ -169,6 +170,9 @@ exports.handleCustomerQuery = async (req, res) => {
     const productDetails = getProductDetails(state.currentProduct.id);
     const chainOfThoughtResult = await generateChainOfThoughtAnswer(query, productDetails, language);
 
+    // Step 5: Check output factuality
+    const factualityCheck = await checkOutputFactuality(query, productDetails, chainOfThoughtResult.finalAnswer);
+
     // Generate email subject and body
     const subject = await generateEmailSubject(query, language);
     const email = await generateEmailBody(chainOfThoughtResult.finalAnswer, language);
@@ -179,7 +183,8 @@ exports.handleCustomerQuery = async (req, res) => {
       chainOfThought: chainOfThoughtResult,
       moderationResult,
       is_flagged: isFlagged(moderationResult),
-      injectionResult
+      injectionResult,
+      factualityCheck
     };
 
     console.log('Sending response to frontend:', response);
