@@ -7,10 +7,10 @@ def render(language):
     
     generation_type = st.radio(
         "Select query type:",
-        ["Change Product", "Change Comment Type", "Generate Inappropriate Comment", "Generate Prompt Injection"],
+        ["Generate query about a new product", "Generate a different type of comment", "Generate Inappropriate Comment", "Generate Prompt Injection"],
         format_func=lambda x: {
-            "Change Product": "Generate query about a new product",
-            "Change Comment Type": "Generate a different type of comment",
+            "Generate query about a new product": "Generate query about a new product",
+            "Generate a different type of comment": "Generate a different type of comment",
             "Generate Inappropriate Comment": "Generate an inappropriate comment (for testing)",
             "Generate Prompt Injection": "Generate a prompt injection attempt (for testing)"
         }.get(x, x)
@@ -73,3 +73,8 @@ def display_injection_result():
             st.error("Submit button is locked due to potential prompt injection.")
         else:
             st.success("No prompt injection detected.")
+
+# Add this at the end of the file
+if 'generation_type' not in st.session_state:
+    st.session_state.generation_type = "Generate query about a new product"
+    api.generate_new_question(st.session_state.get('language', 'English'), st.session_state.generation_type)

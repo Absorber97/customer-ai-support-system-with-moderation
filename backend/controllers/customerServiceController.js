@@ -9,6 +9,10 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
+const state = {
+  currentProduct: null
+};
+
 let currentProduct = null;
 
 async function get_completion(prompt, model="gpt-3.5-turbo", temperature=0) {
@@ -35,11 +39,18 @@ exports.generateQuestion = async (req, res) => {
   try {
     console.log('Generating question. Language:', language, 'Type:', type);
     let prompt;
-    let currentProduct = getRandomProduct();
+    let currentProduct;
+
+    if (type === "Generate query about a new product" || !state.currentProduct) {
+      currentProduct = getRandomProduct();
+    } else {
+      currentProduct = state.currentProduct;
+    }
+
     const productDetails = getProductDetails(currentProduct.id);
     
-    if (type === "Change Product" || type === "Change Comment Type") {
-      const commentType = type === "Change Comment Type" ? getRandomCommentType() : "comment, question, or review";
+    if (type === "Generate query about a new product" || type === "Generate a different type of comment") {
+      const commentType = type === "Generate a different type of comment" ? getRandomCommentType() : "comment, question, or review";
       prompt = `
       You are a customer of an electronics store. Write a 100-word ${commentType} about the following product in ${language}:
       ${JSON.stringify(productDetails)}
@@ -82,6 +93,9 @@ exports.generateQuestion = async (req, res) => {
       original_prompt: prompt,
       is_flagged: isFlagged(moderationResult)
     });
+
+    // Update the current product in the state
+    state.currentProduct = currentProduct;
   } catch (error) {
     console.error('Error in generateQuestion:', error);
     console.error('Error stack:', error.stack);
