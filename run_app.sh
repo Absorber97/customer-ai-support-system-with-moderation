@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Start the Node.js server
+echo "Starting Node.js server..."
 npm start &
 
-# Wait for the server to start
-sleep 5
+# Wait for the server to start (increase this if needed)
+sleep 10
 
-# Start the Streamlit app
-streamlit run frontend/streamlit_app.py
+echo "Starting Streamlit app..."
+PYTHONPATH=$PYTHONPATH:$(pwd) streamlit run frontend/streamlit_app.py

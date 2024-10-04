@@ -1,0 +1,75 @@
+import streamlit as st
+from frontend.utils import state, logger
+from frontend.services import api
+
+def render(language):
+    st.header("Customer Query")
+    
+    generation_type = st.radio(
+        "Select query type:",
+        ["Change Product", "Change Comment Type", "Generate Inappropriate Comment", "Generate Prompt Injection"],
+        format_func=lambda x: {
+            "Change Product": "Generate query about a new product",
+            "Change Comment Type": "Generate a different type of comment",
+            "Generate Inappropriate Comment": "Generate an inappropriate comment (for testing)",
+            "Generate Prompt Injection": "Generate a prompt injection attempt (for testing)"
+        }.get(x, x)
+    )
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Generate New Question"):
+            logger.info(f"Generate New Question button clicked. Type: {generation_type}")
+            try:
+                api.generate_new_question(language, generation_type)
+            except Exception as e:
+                st.error(f"Failed to generate question: {str(e)}")
+                logger.error(f"Failed to generate question: {str(e)}")
+    
+    with col2:
+        is_inappropriate = state.get('is_inappropriate', False)
+        injection_result = state.get('injection_result', False)
+        submit_button = st.button("Submit", disabled=bool(is_inappropriate or injection_result))
+        if submit_button:
+            if state.get('customer_query'):
+                logger.info("Submit button clicked. Processing query...")
+                api.handle_customer_query(language)
+            else:
+                logger.warning("Attempted to submit without generating a question first")
+                st.warning("Please generate a question before submitting.")
+
+    if state.get('current_product_name'):
+        st.info(f"Current Product: {state.get('current_product_name')}")
+    
+    st.subheader("Generated question:")
+    st.text_area("", value=state.get('customer_query', ''), height=200, key="generated_question", disabled=True)
+    
+    display_moderation_result()
+    display_injection_result()
+
+def display_moderation_result():
+    st.subheader("Query Moderation Result")
+    moderation_result = state.get('moderation_result')
+    if moderation_result:
+        with st.expander("Click to view moderation result", expanded=False):
+            st.json(moderation_result)
+        
+        if state.get('is_inappropriate'):
+            st.warning("This content has been flagged as potentially inappropriate.")
+            st.write("Flagged categories:")
+            for category, flagged in moderation_result["categories"].items():
+                if flagged:
+                    st.write(f"- {category}")
+            st.error("Submit button is locked due to inappropriate content.")
+        else:
+            st.success("This content has passed the moderation check.")
+
+def display_injection_result():
+    st.subheader("Injection Detection Result")
+    injection_result = state.get('injection_result')
+    if injection_result is not None:
+        if injection_result:
+            st.warning("Potential prompt injection detected.")
+            st.error("Submit button is locked due to potential prompt injection.")
+        else:
+            st.success("No prompt injection detected.")
