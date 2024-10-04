@@ -33,6 +33,7 @@ def generate_new_question(language, generation_type):
                 error_details = response.json()
                 st.error(f"Error details: {error_details.get('details', 'No details available')}")
                 st.error(f"Stack trace: {error_details.get('stack', 'No stack trace available')}")
+                st.error(f"Response: {error_details.get('response', 'No response available')}")
 
 # Initialize session state
 if 'customer_query' not in st.session_state:

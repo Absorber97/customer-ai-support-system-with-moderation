@@ -33,11 +33,18 @@ Output a single character.`
     console.log('Prompt injection detection result:', result);
     return result === 'Y';
   } catch (error) {
-    console.error('Prompt Injection Detection Error:', error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+    console.error('Prompt Injection Detection Error:', error);
+    console.error('Error details:', error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
     throw error;
   }
 }
 
+function preventPromptInjection(userInput, delimiter = "####") {
+  const cleanedInput = userInput.replace(new RegExp(delimiter, 'g'), '');
+  return `${delimiter}${cleanedInput}${delimiter}`;
+}
+
 module.exports = {
-  detectPromptInjection
+  detectPromptInjection,
+  preventPromptInjection
 };

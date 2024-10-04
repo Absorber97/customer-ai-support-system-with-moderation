@@ -14,6 +14,8 @@ let currentProduct = null;
 async function get_completion(prompt, model="gpt-3.5-turbo", temperature=0) {
   try {
     console.log('Sending request to OpenAI API with prompt:', prompt);
+    console.log('Model:', model);
+    console.log('Temperature:', temperature);
     const response = await openai.createChatCompletion({
       model: model,
       messages: [{"role": "user", "content": prompt}],
@@ -22,7 +24,8 @@ async function get_completion(prompt, model="gpt-3.5-turbo", temperature=0) {
     console.log('OpenAI API Response:', JSON.stringify(response.data, null, 2));
     return response.data.choices[0].message.content.trim();
   } catch (error) {
-    console.error('OpenAI API Error:', error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+    console.error('OpenAI API Error:', error);
+    console.error('Error details:', error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
     throw error;
   }
 }
@@ -30,6 +33,7 @@ async function get_completion(prompt, model="gpt-3.5-turbo", temperature=0) {
 exports.generateQuestion = async (req, res) => {
   const { language, type } = req.query;
   try {
+    console.log('Generating question. Language:', language, 'Type:', type);
     let prompt;
     let currentProduct = getRandomProduct();
     const productDetails = getProductDetails(currentProduct.id);
@@ -76,6 +80,7 @@ exports.generateQuestion = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in generateQuestion:', error);
+    console.error('Error stack:', error.stack);
     console.error('Error details:', error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
     res.status(500).json({ 
       error: 'An error occurred while generating the question.', 
@@ -93,8 +98,11 @@ exports.handleCustomerQuery = async (req, res) => {
     // Step 1: Input Moderation
     const moderationResult = await moderateContent(query);
 
-    // Step 2: Prompt Injection Detection
-    const injectionResult = await detectPromptInjection(query);
+    // Step 2: Prevent Prompt Injection
+    const safeQuery = preventPromptInjection(query);
+
+    // Step 3: Prompt Injection Detection
+    const injectionResult = await detectPromptInjection(safeQuery);
 
     if (moderationResult.flagged || injectionResult) {
       return res.status(400).json({ 
