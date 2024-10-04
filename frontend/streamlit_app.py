@@ -21,7 +21,7 @@ def generate_new_question(language, generation_type):
             st.session_state.customer_query = data["question"]
             st.session_state.current_product_name = data.get("productName", "N/A")
             st.session_state.moderation_result = data["moderationResult"]
-            st.session_state.is_inappropriate = data["moderationResult"]["flagged"]
+            st.session_state.is_inappropriate = data["is_flagged"]
             st.session_state.injection_result = data.get("injectionResult")
             logger.info(f"Question generated successfully: {data['question'][:50]}...")
             st.success("New question generated!")
@@ -101,6 +101,7 @@ with query_col:
                         st.session_state.subject = data["subject"]
                         st.session_state.answer = data["email"]
                         st.session_state.response_moderation_result = data["moderationResult"]
+                        st.session_state.response_is_inappropriate = data["is_flagged"]
                         st.session_state.response_injection_result = data.get("injectionResult")
                         logger.info("Response generated successfully")
                         st.success("Response generated successfully!")
@@ -132,24 +133,21 @@ with query_col:
         with st.expander("Click to view moderation result", expanded=False):
             st.json(st.session_state.moderation_result)
         
-        if st.session_state.moderation_result["flagged"]:
+        if st.session_state.is_inappropriate:
             st.warning("This content has been flagged as potentially inappropriate.")
             st.write("Flagged categories:")
             for category, flagged in st.session_state.moderation_result["categories"].items():
                 if flagged:
                     st.write(f"- {category}")
+            st.write("Category scores:")
+            for category, score in st.session_state.moderation_result["category_scores"].items():
+                st.write(f"- {category}: {score:.4f}")
             st.error("Submit button is locked due to inappropriate content.")
         else:
             st.success("This content has passed the moderation check.")
-    
-    # Display prompt injection detection result
-    if st.session_state.injection_result is not None:
-        st.subheader("Prompt Injection Detection Result")
-        if st.session_state.injection_result:
-            st.warning("Potential prompt injection detected.")
-            st.error("Submit button is locked due to potential prompt injection.")
-        else:
-            st.success("No prompt injection detected.")
+            st.write("Category scores:")
+            for category, score in st.session_state.moderation_result["category_scores"].items():
+                st.write(f"- {category}: {score:.4f}")
 
 with response_col:
     st.header("Customer Service Response")
