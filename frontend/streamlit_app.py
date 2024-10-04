@@ -6,6 +6,27 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Function to generate a new question
+def generate_new_question(language, generation_type):
+    with st.spinner("Generating new question..."):
+        response = requests.get(f"http://localhost:3000/api/generate-question?language={language}&type={generation_type}")
+        if response.status_code == 200:
+            data = response.json()
+            st.session_state.customer_query = data["question"]
+            st.session_state.current_product_name = data.get("productName", "N/A")
+            st.session_state.moderation_result = data["moderationResult"]
+            st.session_state.is_inappropriate = data["moderationResult"]["flagged"]
+            st.success("New question generated!")
+        else:
+            st.error(f"Failed to generate a new question. Error: {response.text}")
+
+# Initialize session state
+if 'customer_query' not in st.session_state:
+    st.session_state.customer_query = ""
+    st.session_state.current_product_name = ""
+    st.session_state.moderation_result = None
+    st.session_state.is_inappropriate = False
+
 st.set_page_config(page_title="Electronics Store AI Customer Service", layout="wide")
 
 st.title("Electronics Store AI Customer Service")
@@ -20,6 +41,10 @@ with col2:
 
 # Language selection at the top
 language = st.selectbox("Language", ["English", "Spanish", "French", "German", "Italian"])
+
+# Generate a normal comment/question on load
+if not st.session_state.customer_query:
+    generate_new_question(language, "Change Product")
 
 # Create two columns for Question and Answer
 query_col, response_col = st.columns(2)
@@ -37,84 +62,78 @@ with query_col:
         }.get(x, x)
     )
     
-    if st.button("Generate New Question"):
-        with st.spinner("Generating new question..."):
-            response = requests.get(f"http://localhost:3000/api/generate-question?language={language}&type={generation_type}")
-            if response.status_code == 200:
-                data = response.json()
-                st.session_state.customer_query = data["question"]
-                st.session_state.current_product_name = data.get("productName", "N/A")
-                st.success("New question generated!")
-                
-                # Display current product information
-                if 'current_product_name' in st.session_state:
-                    st.info(f"Current Product: {st.session_state.current_product_name}")
-                
-                st.subheader("Generated question:")
-                st.text_area("", value=st.session_state.customer_query, height=200, key="generated_question")
-                
-                # Display moderation result
-                st.subheader("Moderation Result")
-                moderation_result = data["moderationResult"]
-                st.json(moderation_result)
-                
-                if moderation_result["flagged"]:
-                    st.warning("This content has been flagged as potentially inappropriate.")
-                    st.write("Flagged categories:")
-                    for category, flagged in moderation_result["categories"].items():
-                        if flagged:
-                            st.write(f"- {category}")
-                else:
-                    st.success("This content has passed the moderation check.")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Generate New Question"):
+            generate_new_question(language, generation_type)
+    
+    with col2:
+        submit_button = st.button("Submit", disabled=st.session_state.is_inappropriate)
+        if submit_button:
+            if st.session_state.get('customer_query'):
+                with st.spinner("Processing your query..."):
+                    response = requests.post("http://localhost:3000/api/customer-service", json={"query": st.session_state.customer_query, "language": language})
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        st.session_state.subject = data["subject"]
+                        st.session_state.answer = data["email"]
+                        st.session_state.response_moderation_result = data["moderationResult"]
+                        st.success("Response generated successfully!")
+                    elif response.status_code == 400:
+                        st.warning("Input flagged as inappropriate. Please modify your query.")
+                        if 'moderationResult' in response.json():
+                            st.session_state.response_moderation_result = response.json()['moderationResult']
+                    else:
+                        st.error(f"An error occurred. Please try again. Error: {response.text}")
             else:
-                st.error(f"Failed to generate a new question. Error: {response.text}")
+                st.warning("Please generate a question before submitting.")
+
+    # Display current product information
+    if st.session_state.current_product_name:
+        st.info(f"Current Product: {st.session_state.current_product_name}")
+    
+    st.subheader("Generated question:")
+    st.text_area("", value=st.session_state.customer_query, height=200, key="generated_question", disabled=True)
+    
+    # Display moderation result
+    st.subheader("Query Moderation Result")
+    if st.session_state.moderation_result:
+        with st.expander("Click to view moderation result", expanded=False):
+            st.json(st.session_state.moderation_result)
+        
+        if st.session_state.moderation_result["flagged"]:
+            st.warning("This content has been flagged as potentially inappropriate.")
+            st.write("Flagged categories:")
+            for category, flagged in st.session_state.moderation_result["categories"].items():
+                if flagged:
+                    st.write(f"- {category}")
+            st.error("Submit button is locked due to inappropriate content.")
+        else:
+            st.success("This content has passed the moderation check.")
 
 with response_col:
     st.header("Customer Service Response")
-    if 'answer' not in st.session_state:
-        st.session_state.answer = ""
-    if 'subject' not in st.session_state:
-        st.session_state.subject = ""
     
     st.subheader("Email Subject:")
     subject_placeholder = st.empty()
     st.subheader("Email Body:")
     answer_placeholder = st.empty()
 
-# Submit button below the columns
-if st.button("Submit"):
-    if st.session_state.get('customer_query'):
-        with st.spinner("Processing your query..."):
-            response = requests.post("http://localhost:3000/api/customer-service", json={"query": st.session_state.customer_query, "language": language})
-            
-            if response.status_code == 200:
-                data = response.json()
-                st.session_state.subject = data["subject"]
-                st.session_state.answer = data["email"]
-                st.success("Response generated successfully!")
-                
-                # Display moderation result
-                st.subheader("Moderation Result")
-                moderation_result = data["moderationResult"]
-                st.json(moderation_result)
-                
-                if moderation_result["flagged"]:
-                    st.warning("This content has been flagged as potentially inappropriate.")
-                    st.write("Flagged categories:")
-                    for category, flagged in moderation_result["categories"].items():
-                        if flagged:
-                            st.write(f"- {category}")
-                else:
-                    st.success("This content has passed the moderation check.")
-            elif response.status_code == 400:
-                st.warning("Input flagged as inappropriate. Please modify your query.")
-                if 'moderationResult' in response.json():
-                    st.subheader("Moderation Result")
-                    st.json(response.json()['moderationResult'])
-            else:
-                st.error(f"An error occurred. Please try again. Error: {response.text}")
-    else:
-        st.warning("Please generate a question before submitting.")
+    # Display response moderation result
+    st.subheader("Response Moderation Result")
+    if 'response_moderation_result' in st.session_state:
+        with st.expander("Click to view moderation result", expanded=False):
+            st.json(st.session_state.response_moderation_result)
+        
+        if st.session_state.response_moderation_result["flagged"]:
+            st.warning("The response has been flagged as potentially inappropriate.")
+            st.write("Flagged categories:")
+            for category, flagged in st.session_state.response_moderation_result["categories"].items():
+                if flagged:
+                    st.write(f"- {category}")
+        else:
+            st.success("The response has passed the moderation check.")
 
 # Always display the subject and answer, whether they're empty or not
 subject_placeholder.text_input("Subject", value=st.session_state.get('subject', ''), key="subject_area")
