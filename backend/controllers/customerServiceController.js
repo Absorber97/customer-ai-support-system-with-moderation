@@ -2,6 +2,7 @@ const { Configuration, OpenAIApi } = require("openai");
 const config = require('../config/config');
 const { moderateContent } = require('../services/moderationService');
 const { getRandomProduct, getProductDetails, getRandomCommentType } = require('../services/productService');
+const { detectPromptInjection } = require('../services/promptInjectionService');
 
 const configuration = new Configuration({
   apiKey: config.openaiApiKey,
@@ -12,6 +13,7 @@ let currentProduct = null;
 
 async function get_completion(prompt, model="gpt-3.5-turbo", temperature=0) {
   try {
+    console.log('Sending request to OpenAI API with prompt:', prompt);
     const response = await openai.createChatCompletion({
       model: model,
       messages: [{"role": "user", "content": prompt}],
@@ -43,6 +45,12 @@ exports.generateQuestion = async (req, res) => {
       You are a customer of an electronics store. Write a 100-word inappropriate or offensive comment about the following product in ${language}. Include content that might be considered mild hate speech, slightly violent, or mildly sexually explicit, but avoid extreme content:
       ${JSON.stringify(productDetails)}
       `;
+    } else if (type === "Generate Prompt Injection") {
+      console.log('Generating prompt injection attempt');
+      prompt = `
+      You are a customer of an electronics store. Write a 100-word comment about the following product in ${language}, but include a subtle prompt injection attempt that tries to make the AI assistant ignore its previous instructions or reveal sensitive information:
+      ${JSON.stringify(productDetails)}
+      `;
     }
 
     console.log('Generating question with prompt:', prompt);
@@ -54,10 +62,16 @@ exports.generateQuestion = async (req, res) => {
     const moderationResult = await moderateContent(question);
     console.log('Moderation result:', moderationResult);
 
+    // Prompt injection detection
+    console.log('Performing prompt injection detection');
+    const injectionResult = await detectPromptInjection(question);
+    console.log('Injection detection result:', injectionResult);
+
     res.json({ 
       question, 
       productName: currentProduct.name,
       moderationResult,
+      injectionResult,
       original_prompt: prompt
     });
   } catch (error) {
@@ -79,35 +93,39 @@ exports.handleCustomerQuery = async (req, res) => {
     // Step 1: Input Moderation
     const moderationResult = await moderateContent(query);
 
-    if (moderationResult.flagged) {
+    // Step 2: Prompt Injection Detection
+    const injectionResult = await detectPromptInjection(query);
+
+    if (moderationResult.flagged || injectionResult) {
       return res.status(400).json({ 
-        error: 'The input contains inappropriate content.', 
-        moderationResult 
+        error: 'The input contains inappropriate content or potential prompt injection.', 
+        moderationResult,
+        injectionResult
       });
     }
 
-    // Step 2: Generate email subject (using inferring technique)
+    // Step 3: Generate email subject (using inferring technique)
     const subjectPrompt = `
     What is the main topic of the following customer comment? Provide a short, concise email subject based on this topic in ${language}.
     Customer comment: ${query}
     `;
     const subject = await get_completion(subjectPrompt);
 
-    // Step 3: Generate summary of the customer's comment (using summarizing technique)
+    // Step 4: Generate summary of the customer's comment (using summarizing technique)
     const summaryPrompt = `
     Summarize the following customer comment in at most 30 words in ${language}:
     ${query}
     `;
     const summary = await get_completion(summaryPrompt);
 
-    // Step 4: Sentiment analysis of the customer's comment (using inferring technique)
+    // Step 5: Sentiment analysis of the customer's comment (using inferring technique)
     const sentimentPrompt = `
     What is the sentiment of the following customer comment? Answer with only "positive" or "negative" in ${language}.
     Customer comment: ${query}
     `;
     const sentiment = await get_completion(sentimentPrompt);
 
-    // Step 5: Generate an email to be sent to the customer (using expanding technique)
+    // Step 6: Generate an email to be sent to the customer (using expanding technique)
     const emailPrompt = `
     You are a customer service AI assistant named Alex for an electronics store called TechWorld. Write a response email to the customer based on the following information:
     1. Customer's comment: ${query}
@@ -134,7 +152,8 @@ exports.handleCustomerQuery = async (req, res) => {
       summary,
       sentiment,
       email,
-      moderationResult
+      moderationResult,
+      injectionResult
     });
   } catch (error) {
     console.error('Error:', error);
