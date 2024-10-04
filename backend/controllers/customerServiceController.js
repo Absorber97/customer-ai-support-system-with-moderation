@@ -118,10 +118,12 @@ exports.handleCustomerQuery = async (req, res) => {
 
     // Step 4: Generate email subject (using inferring technique)
     const subjectPrompt = `
-    What is the main topic of the following customer comment? Provide a short, concise email subject based on this topic in ${language}.
+    What is the main topic of the following customer comment? Provide a short, concise email subject based on this topic in ${language}. Do not include any prefix like "Subject:" or "Email Subject:".
     Customer comment: ${safeQuery}
     `;
-    const subject = await get_completion(subjectPrompt);
+    let subject = await get_completion(subjectPrompt);
+    // Remove any "Subject:" or "Email Subject:" prefix if it's still present
+    subject = subject.replace(/^(Subject:|Email Subject:)\s*/i, '').trim();
 
     // Step 5: Generate summary of the customer's comment (using summarizing technique)
     const summaryPrompt = `
