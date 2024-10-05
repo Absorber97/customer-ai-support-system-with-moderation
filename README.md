@@ -4,6 +4,8 @@
 
 An AI-powered customer service system for an electronics store, showcasing modern web development practices and AI integration.
 
+![Capture](images/Capture-2024-10-05-081857.png)
+
 ## 🚀 Features
 
 - AI-generated customer queries and responses using OpenAI's GPT-3.5 Turbo
