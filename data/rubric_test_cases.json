@@ -1,0 +1,20 @@
+{
+  "phone_camera_megapixels": {
+    "customerMsg": "How many megapixels is the main camera on the SmartX ProPhone? Is it good for low-light photography?",
+    "idealAnswer": "The SmartX ProPhone features a 108-megapixel main camera. It performs well in low-light conditions due to its large sensor size and advanced night mode feature.",
+    "generatedAnswer": "The SmartX ProPhone boasts an impressive 108-megapixel main camera, allowing you to capture stunningly detailed photos and videos. Its large sensor size and advanced night mode make it excellent for low-light photography, producing clear and bright images even in challenging lighting conditions.",
+    "context": "The SmartX ProPhone features a 108-megapixel main camera. It has a large sensor size and advanced night mode for improved low-light performance. The phone also includes ultra-wide and telephoto lenses for versatile photography options."
+  },
+  "laptop_ram_upgrade": {
+    "customerMsg": "Can I upgrade the RAM on the TechPro UltraBook? What's the maximum RAM it supports?",
+    "idealAnswer": "The TechPro UltraBook comes with 8GB of DDR4 RAM soldered to the motherboard, which is not user-upgradable. The maximum RAM is 8GB as it cannot be expanded.",
+    "generatedAnswer": "Unfortunately, the RAM on the TechPro UltraBook is not user-upgradable. It comes with 8GB of DDR4 RAM soldered directly to the motherboard. This means the maximum RAM is 8GB, and it cannot be expanded. If you need more RAM, you might want to consider a different model or series that offers upgradeable memory options.",
+    "context": "The TechPro UltraBook comes with 8GB of DDR4 RAM soldered to the motherboard. It is not user-upgradable and cannot be expanded beyond 8GB."
+  },
+  "gaming_console_compatibility": {
+    "customerMsg": "Is the GameSphere 5 backwards compatible with GameSphere 4 games? Are there any limitations?",
+    "idealAnswer": "Yes, the GameSphere 5 is backwards compatible with most GameSphere 4 games. However, a small number of titles may not be fully compatible or may have minor performance issues.",
+    "generatedAnswer": "Yes, the GameSphere 5 is indeed backwards compatible with the majority of GameSphere 4 games. This feature allows you to enjoy your existing game library on the new console, providing great value and continuity for gamers upgrading from the previous generation. While most games should work without issues, it's worth noting that a small number of titles might have minor compatibility or performance limitations. However, the gaming experience for most backwards compatible games should be smooth and potentially even enhanced on the newer hardware.",
+    "context": "The GameSphere 5 is backwards compatible with most GameSphere 4 games. However, a small percentage of games may experience minor compatibility issues or performance limitations."
+  }
+}

@@ -1,5 +1,5 @@
 import streamlit as st
-from frontend.components import customerQuery, customerResponse, languageSelector, evaluationResults
+from frontend.components import customerQuery, customerResponse, languageSelector, evaluationResults, rubricEvaluation
 from frontend.utils import state, logger
 from frontend.services import api
 
@@ -13,7 +13,7 @@ def main():
 
     state.initialize_session_state()
 
-    tab1, tab2 = st.tabs(["Customer Service", "Evaluation"])
+    tab1, tab2, tab3 = st.tabs(["Customer Service", "Evaluation", "Rubric Evaluation"])
 
     with tab1:
         language = languageSelector.render()
@@ -28,6 +28,9 @@ def main():
 
     with tab2:
         evaluationResults.render()
+
+    with tab3:
+        rubricEvaluation.render()
 
     st.markdown("""
     <style>

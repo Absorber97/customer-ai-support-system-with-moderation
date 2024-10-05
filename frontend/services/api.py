@@ -74,3 +74,12 @@ def run_evaluation(test_cases):
     except requests.RequestException as e:
         logger.error(f"Failed to run evaluation. Error: {str(e)}")
         raise
+
+def run_rubric_evaluation(test_cases):
+    try:
+        response = requests.post(f"{BASE_URL}/rubric-evaluation/run", json={"testCases": test_cases})
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        logger.error(f"Failed to run rubric evaluation. Error: {str(e)}")
+        raise

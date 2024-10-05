@@ -1,0 +1,125 @@
+const { getCompletion } = require('./openaiService');
+const logger = require('../utils/logger');
+
+async function runRubricEvaluation(testCases) {
+  const results = [];
+  for (const testCase of testCases) {
+    const { customerMsg, idealAnswer, generatedAnswer, context } = testCase;
+    try {
+      const evaluation = await evaluateWithRubric(customerMsg, context || "No context provided", generatedAnswer);
+      results.push({
+        customerMsg,
+        idealAnswer,
+        generatedAnswer,
+        context: context || "No context provided",
+        evaluation
+      });
+    } catch (error) {
+      logger.error(`Error evaluating test case: ${error.message}`);
+      results.push({
+        customerMsg,
+        idealAnswer,
+        generatedAnswer,
+        context: context || "No context provided",
+        evaluation: { error: error.message }
+      });
+    }
+  }
+  return results;
+}
+
+async function evaluateWithRubric(customerMsg, context, generatedAnswer) {
+  const prompt = `
+Evaluate the following customer service response based on this rubric:
+
+1. Is the answer based on the given context? (Y/N)
+2. Does the answer include information not present in the context? (Y/N)
+3. Is there any disagreement between the answer and the context? (Y/N)
+4. How many distinct points or questions does the customer query contain?
+5. How many of these points or questions does the answer address?
+
+Customer Query: ${customerMsg}
+
+Context: ${context}
+
+Generated Answer: ${generatedAnswer}
+
+Provide your evaluation in the following format:
+1. Based on context: [Y/N]
+2. Includes extra info: [Y/N]
+3. Disagreement with context: [Y/N]
+4. Points in query: [number]
+5. Points addressed: [number]
+
+Also, provide a brief explanation for each point and an overall summary.
+`;
+
+  try {
+    const response = await getCompletion([{ role: 'user', content: prompt }]);
+    return parseRubricEvaluation(response);
+  } catch (error) {
+    logger.error(`Error in evaluateWithRubric: ${error.message}`);
+    throw error;
+  }
+}
+
+function parseRubricEvaluation(response) {
+  const lines = response.split('\n');
+  const results = {
+    basedOnContext: '',
+    includesExtraInfo: '',
+    hasDisagreement: '',
+    questionsAsked: 0,
+    questionsAddressed: 0,
+    explanations: [],
+    summary: ''
+  };
+
+  let currentSection = '';
+
+  for (const line of lines) {
+    if (line.startsWith('1. Based on context:')) {
+      results.basedOnContext = line.split(':')[1].trim();
+    } else if (line.startsWith('2. Includes extra info:')) {
+      results.includesExtraInfo = line.split(':')[1].trim();
+    } else if (line.startsWith('3. Disagreement with context:')) {
+      results.hasDisagreement = line.split(':')[1].trim();
+    } else if (line.startsWith('4. Points in query:')) {
+      results.questionsAsked = parseInt(line.split(':')[1].trim());
+    } else if (line.startsWith('5. Points addressed:')) {
+      results.questionsAddressed = parseInt(line.split(':')[1].trim());
+    } else if (line.startsWith('Explanation for')) {
+      currentSection = 'explanation';
+      results.explanations.push(line);
+    } else if (line.startsWith('Overall summary:')) {
+      currentSection = 'summary';
+      results.summary = line.replace('Overall summary:', '').trim();
+    } else if (currentSection === 'explanation') {
+      results.explanations[results.explanations.length - 1] += ' ' + line.trim();
+    } else if (currentSection === 'summary') {
+      results.summary += ' ' + line.trim();
+    }
+  }
+
+  return {
+    rubricScore: calculateRubricScore(results),
+    rubricExplanation: results.summary,
+    detailedResults: results
+  };
+}
+
+function calculateRubricScore(results) {
+  let score = 0;
+  if (results.basedOnContext === 'Y') score += 2;
+  if (results.includesExtraInfo === 'N') score += 2;
+  if (results.hasDisagreement === 'N') score += 2;
+  if (results.questionsAsked > 0) {
+    const percentageAnswered = results.questionsAddressed / results.questionsAsked;
+    score += percentageAnswered * 4;
+  }
+  return Math.round(score * 10) / 10; // Round to one decimal place
+}
+
+module.exports = {
+  runRubricEvaluation
+};
