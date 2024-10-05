@@ -117,7 +117,7 @@ electronics-store-ai-customer-service/
 └── run_app.sh
 ```
 
-## Key Implementation Details
+## 🔍 Key Implementation Details
 
 1. **RESTful API**: The backend implements a RESTful API using Express.js, following best practices for route organization and controller separation.
 
@@ -139,7 +139,7 @@ electronics-store-ai-customer-service/
 
 10. **Data Persistence**: JSON files are used to simulate a database, demonstrating data handling and persistence concepts.
 
-## Future Enhancements
+## ⚡️ Future Enhancements
 
 - Implement user authentication and authorization
 - Integrate a proper database system (e.g., MongoDB, PostgreSQL)
@@ -147,10 +147,10 @@ electronics-store-ai-customer-service/
 - Implement caching mechanisms for improved performance
 - Dockerize the application for easier deployment and scaling
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
+## 🪪 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
