@@ -54,7 +54,7 @@ Provide your evaluation in the following format:
 4. Points in query: [number]
 5. Points addressed: [number]
 
-Also, provide a brief explanation for each point and an overall summary.
+Also, provide a brief explanation for each point, an overall summary, and a detailed step-by-step explanation of how you arrived at your evaluation.
 `;
 
   try {
@@ -126,7 +126,6 @@ function calculateRubricScore(results) {
 async function evaluateVsIdeal(customerMsg, idealAnswer, generatedAnswer) {
   const prompt = `
 You are an assistant that evaluates how well the customer service agent answers a user question by comparing the response to the ideal (expert) response.
-Output a single letter and nothing else.
 
 You are comparing a submitted answer to an expert answer on a given question. Here is the data:
 
@@ -150,15 +149,39 @@ Determine which case applies. Answer the question by selecting one of the follow
 (C) The submitted answer contains all the same details as the expert answer.
 (D) There is a disagreement between the submitted answer and the expert answer.
 (E) The answers differ, but these differences don't matter from the perspective of factuality.
+
+Provide your answer in the following format:
+Selected Option: [A/B/C/D/E]
+Detailed Explanation: [Your step-by-step reasoning for choosing this option]
 `;
 
   try {
     const response = await getCompletion([{ role: 'user', content: prompt }]);
-    return response.trim();
+    return parseIdealComparison(response);
   } catch (error) {
     logger.error(`Error in evaluateVsIdeal: ${error.message}`);
     throw error;
   }
+}
+
+function parseIdealComparison(response) {
+  const lines = response.split('\n');
+  let result = {
+    selectedOption: '',
+    explanation: ''
+  };
+
+  for (const line of lines) {
+    if (line.startsWith('Selected Option:')) {
+      result.selectedOption = line.split(':')[1].trim();
+    } else if (line.startsWith('Detailed Explanation:')) {
+      result.explanation = line.replace('Detailed Explanation:', '').trim();
+    } else if (result.explanation) {
+      result.explanation += ' ' + line.trim();
+    }
+  }
+
+  return result;
 }
 
 module.exports = {

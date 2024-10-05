@@ -62,17 +62,26 @@ def display_rubric_evaluation_results(results):
             else:
                 st.write("Context: Not provided")
             st.write("Generated Answer:", result['generatedAnswer'])
-            st.write("Rubric Evaluation:")
+            st.write("Ideal Answer:", result['idealAnswer'])
+            
+            st.subheader("Rubric Evaluation")
             st.write(f"Rubric Score: {result['evaluation']['rubricScore']}")
             st.write(f"Rubric Explanation: {result['evaluation']['rubricExplanation']}")
-            st.write("Ideal Comparison:", result['idealComparison'])
-            st.write("Detailed Results:")
+            
+            st.write("Detailed Rubric Results:")
             for key, value in result['evaluation']['detailedResults'].items():
                 if key != 'explanations':
                     st.write(f"{key.replace('_', ' ').title()}: {value}")
-            st.write("Explanations:")
+            
+            st.write("Step-by-step Explanations:")
             for explanation in result['evaluation']['detailedResults']['explanations']:
                 st.write(explanation)
+            
+            st.subheader("Ideal Answer Comparison")
+            ideal_comparison = result['idealComparison']
+            st.write(f"Selected Option: {ideal_comparison['selectedOption']}")
+            st.write("Detailed Explanation:")
+            st.write(ideal_comparison['explanation'])
 
 def load_rubric_test_cases():
     file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'rubric_test_cases.json')
