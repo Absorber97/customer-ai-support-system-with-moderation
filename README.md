@@ -6,6 +6,11 @@ An AI-powered customer service system for an electronics store, showcasing moder
 
 ![Capture](images/Capture-2024-10-05-081857.png)
 
+## 🗂️ Related Resources
+- Vanilla Version: https://github.com/Absorber97/electronics-store-ai-customer-service
+- Presentation (Google Slides): https://docs.google.com/presentation/d/1Na3DeV5GxMFI_pGsbzRqY5_n50C9S7q58NMmF0wn4is/edit?usp=sharing 
+- Presentation (PDF): https://drive.google.com/file/d/1LZKzggcWEOOO5ja2245MZhmHGHpQ0kO0/view?usp=sharing 
+
 ## 🚀 Features
 
 - AI-generated customer queries and responses using OpenAI's GPT-3.5 Turbo
