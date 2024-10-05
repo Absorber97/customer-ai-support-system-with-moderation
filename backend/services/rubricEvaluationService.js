@@ -7,12 +7,14 @@ async function runRubricEvaluation(testCases) {
     const { customerMsg, idealAnswer, generatedAnswer, context } = testCase;
     try {
       const evaluation = await evaluateWithRubric(customerMsg, context || "No context provided", generatedAnswer);
+      const idealComparison = await evaluateVsIdeal(customerMsg, idealAnswer, generatedAnswer);
       results.push({
         customerMsg,
         idealAnswer,
         generatedAnswer,
         context: context || "No context provided",
-        evaluation
+        evaluation,
+        idealComparison
       });
     } catch (error) {
       logger.error(`Error evaluating test case: ${error.message}`);
@@ -21,7 +23,8 @@ async function runRubricEvaluation(testCases) {
         idealAnswer,
         generatedAnswer,
         context: context || "No context provided",
-        evaluation: { error: error.message }
+        evaluation: { error: error.message },
+        idealComparison: { error: error.message }
       });
     }
   }
@@ -120,6 +123,45 @@ function calculateRubricScore(results) {
   return Math.round(score * 10) / 10; // Round to one decimal place
 }
 
+async function evaluateVsIdeal(customerMsg, idealAnswer, generatedAnswer) {
+  const prompt = `
+You are an assistant that evaluates how well the customer service agent answers a user question by comparing the response to the ideal (expert) response.
+Output a single letter and nothing else.
+
+You are comparing a submitted answer to an expert answer on a given question. Here is the data:
+
+[BEGIN DATA]
+************
+[Question]: ${customerMsg}
+************
+[Expert]: ${idealAnswer}
+************
+[Submission]: ${generatedAnswer}
+************
+[END DATA]
+
+Compare the factual content of the submitted answer with the expert answer. 
+
+Ignore any differences in style, grammar, or punctuation.
+The submitted answer may either be a subset or superset of the expert answer, or it may conflict with it. 
+Determine which case applies. Answer the question by selecting one of the following options:
+(A) The submitted answer is a subset of the expert answer and is fully consistent with it.
+(B) The submitted answer is a superset of the expert answer and is fully consistent with it.
+(C) The submitted answer contains all the same details as the expert answer.
+(D) There is a disagreement between the submitted answer and the expert answer.
+(E) The answers differ, but these differences don't matter from the perspective of factuality.
+`;
+
+  try {
+    const response = await getCompletion([{ role: 'user', content: prompt }]);
+    return response.trim();
+  } catch (error) {
+    logger.error(`Error in evaluateVsIdeal: ${error.message}`);
+    throw error;
+  }
+}
+
 module.exports = {
-  runRubricEvaluation
+  runRubricEvaluation,
+  evaluateVsIdeal // Export for testing purposes
 };

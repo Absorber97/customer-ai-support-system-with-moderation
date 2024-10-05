@@ -6,7 +6,7 @@
     "context": "The SmartX ProPhone features a 108-megapixel main camera. It has a large sensor size and advanced night mode for improved low-light performance. The phone also includes ultra-wide and telephoto lenses for versatile photography options."
   },
   "laptop_ram_upgrade": {
-    "customerMsg": "Can I upgrade the RAM on the TechPro UltraBook? What's the maximum RAM it supports?",
+    "customerMsg": "Can I upgrade the RAM on the TechPro UltraBook?",
     "idealAnswer": "The TechPro UltraBook comes with 8GB of DDR4 RAM soldered to the motherboard, which is not user-upgradable. The maximum RAM is 8GB as it cannot be expanded.",
     "generatedAnswer": "Unfortunately, the RAM on the TechPro UltraBook is not user-upgradable. It comes with 8GB of DDR4 RAM soldered directly to the motherboard. This means the maximum RAM is 8GB, and it cannot be expanded. If you need more RAM, you might want to consider a different model or series that offers upgradeable memory options.",
     "context": "The TechPro UltraBook comes with 8GB of DDR4 RAM soldered to the motherboard. It is not user-upgradable and cannot be expanded beyond 8GB."

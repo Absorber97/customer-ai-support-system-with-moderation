@@ -65,6 +65,7 @@ def display_rubric_evaluation_results(results):
             st.write("Rubric Evaluation:")
             st.write(f"Rubric Score: {result['evaluation']['rubricScore']}")
             st.write(f"Rubric Explanation: {result['evaluation']['rubricExplanation']}")
+            st.write("Ideal Comparison:", result['idealComparison'])
             st.write("Detailed Results:")
             for key, value in result['evaluation']['detailedResults'].items():
                 if key != 'explanations':
