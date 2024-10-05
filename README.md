@@ -6,12 +6,25 @@ An AI-powered customer service system for an electronics store, showcasing moder
 
 ## 🚀 Features
 
-- AI-generated customer queries and responses
+- AI-generated customer queries and responses using OpenAI's GPT-3.5 Turbo
 - Multi-language support (English, Spanish, French, German, Italian)
 - Sentiment analysis of customer comments
-- Email subject and body generation
-- Responsive web interface
-- Content moderation and prompt injection prevention
+- Email subject and body generation for professional customer communication
+- Responsive web interface built with Streamlit
+- Content moderation to filter inappropriate or offensive content
+- Prompt injection detection and prevention for enhanced security
+- Query classification into primary and secondary categories
+- Chain-of-thought reasoning for more detailed and accurate responses
+- Factuality checking of AI-generated responses against product information
+- Random product and comment type generation for diverse scenarios
+- Simulated product database with detailed descriptions
+- Interactive UI elements for generating and submitting customer queries
+- Real-time display of AI processing steps and results
+- Expandable sections for viewing detailed AI reasoning and evaluations
+- Color-coded success/warning messages for moderation and injection detection results
+- Customizable generation types (e.g., new product queries, different comment types)
+- Error handling and logging for both frontend and backend
+- Scalable architecture with separation of concerns (backend services, frontend components)
 
 ## 🛠️ Tech Stack
 
