@@ -16,6 +16,7 @@ pip-delete-this-directory.txt
 
 # Environment variables
 .env
+.env.*
 
 # IDEs and editors
 .vscode/
@@ -50,6 +51,18 @@ pids
 *.bak
 *.tmp
 *.temp
+
+# Coverage reports
+coverage/
+
+# Pytest
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
 
 # Inspirations directory
 inspirations/
