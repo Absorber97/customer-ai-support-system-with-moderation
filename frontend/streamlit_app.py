@@ -1,5 +1,5 @@
 import streamlit as st
-from frontend.components import customerQuery, customerResponse, languageSelector
+from frontend.components import customerQuery, customerResponse, languageSelector, evaluationResults
 from frontend.utils import state, logger
 from frontend.services import api
 
@@ -13,15 +13,21 @@ def main():
 
     state.initialize_session_state()
 
-    language = languageSelector.render()
+    tab1, tab2 = st.tabs(["Customer Service", "Evaluation"])
 
-    query_col, response_col = st.columns(2)
+    with tab1:
+        language = languageSelector.render()
 
-    with query_col:
-        customerQuery.render(language)
+        query_col, response_col = st.columns(2)
 
-    with response_col:
-        customerResponse.render()
+        with query_col:
+            customerQuery.render(language)
+
+        with response_col:
+            customerResponse.render()
+
+    with tab2:
+        evaluationResults.render()
 
     st.markdown("""
     <style>

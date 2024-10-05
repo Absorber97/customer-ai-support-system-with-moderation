@@ -1,0 +1,27 @@
+{
+  "battery_life": {
+    "customerMsg": "What's the battery life of the TechPro UltraBook?",
+    "idealAnswer": "The TechPro UltraBook has a battery life of up to 12 hours.",
+    "generatedAnswer": "The TechPro UltraBook offers an impressive battery life of up to 12 hours, making it perfect for professionals on the go who need long-lasting performance throughout their workday."
+  },
+  "graphics_card": {
+    "customerMsg": "Does the BlueWave Gaming Laptop come with a dedicated graphics card?",
+    "idealAnswer": "Yes, the BlueWave Gaming Laptop comes with an NVIDIA GeForce RTX 3070 graphics card.",
+    "generatedAnswer": "The BlueWave Gaming Laptop is equipped with a high-performance NVIDIA GeForce RTX 3070 graphics card, which provides excellent gaming and rendering capabilities."
+  },
+  "home_theater_storage": {
+    "customerMsg": "What's the storage capacity of the SoundMax Home Theater?",
+    "idealAnswer": "The SoundMax Home Theater does not have built-in storage capacity as it is an audio system, not a storage device.",
+    "generatedAnswer": "The SoundMax Home Theater is designed for audio playback and doesn't come with built-in storage. It's primarily used to enhance your home entertainment experience with its powerful sound system."
+  },
+  "tv_hdr_compatibility": {
+    "customerMsg": "Is the ClearView 4K TV compatible with HDR content?",
+    "idealAnswer": "Yes, the ClearView 4K TV is compatible with HDR content, supporting HDR10 and Dolby Vision formats.",
+    "generatedAnswer": "Absolutely! The ClearView 4K TV fully supports HDR content, including both HDR10 and Dolby Vision formats. This ensures you'll enjoy vibrant colors and enhanced contrast when watching HDR-compatible content."
+  },
+  "refrigerator_warranty": {
+    "customerMsg": "What's the warranty period for the PowerLite Refrigerator?",
+    "idealAnswer": "The PowerLite Refrigerator comes with a 2-year limited warranty on parts and labor.",
+    "generatedAnswer": "The PowerLite Refrigerator is covered by our standard warranty policy, which includes a 2-year limited warranty on both parts and labor. This gives you peace of mind knowing that your appliance is protected against defects and malfunctions."
+  }
+}
